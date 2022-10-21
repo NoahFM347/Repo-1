@@ -1,0 +1,120 @@
+create_file:
+  runtime: python3.8
+  handler: functions.create_file.handler
+  events:
+    - s3:
+        existing: true
+        bucket: ${self:custom.prefix}-data
+        event: s3:ObjectCreated:*
+        rules:
+          - suffix: ".jsonl"
+  environment:
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+
+list_files:
+  runtime: python3.8
+  handler: functions.list_files.handler
+  events:
+    - http:
+        path: files/list
+        method: get
+        cors: true
+        authorizer:
+          name: authorizer_function
+          resultTtlInSeconds: 0
+          identitySource: method.request.header.Authorization
+          identityValidationExpression: jwt .+
+          type: token
+  environment:
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+
+list_models:
+  runtime: python3.8
+  handler: functions.list_models.handler
+  events:
+    - http:
+        path: models/list
+        method: get
+        cors: true
+        authorizer:
+          name: authorizer_function
+          resultTtlInSeconds: 0
+          identitySource: method.request.header.Authorization
+          identityValidationExpression: jwt .+
+          type: token
+  environment:
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+
+better_answers:
+  runtime: python3.8
+  layers:
+    - arn:aws:lambda:us-west-2:770693421928:layer:Klayers-python38-pydantic:3
+  handler: functions.api.better_answers.handler
+  events:
+    - http:
+        path: /better_answers
+        method: post
+        cors: true
+        authorizer:
+          name: authorizer_function
+          resultTtlInSeconds: 0
+          identitySource: method.request.header.Authorization
+          identityValidationExpression: jwt .+
+          type: token
+  environment:
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+
+list_finetune_jobs:
+  runtime: python3.8
+  handler: functions.list_finetune_jobs.handler
+  events:
+    - http:
+        path: finetune_jobs/list
+        method: get
+        cors: true
+        authorizer:
+          name: authorizer_function
+          resultTtlInSeconds: 0
+          identitySource: method.request.header.Authorization
+          identityValidationExpression: jwt .+
+          type: token
+  environment:
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+
+start_finetune_job:
+  runtime: python3.8
+  handler: functions.start_finetune_job.handler
+  events:
+    - http:
+        path: finetune_jobs/start
+        method: post
+        cors: true
+        authorizer:
+          name: authorizer_function
+          resultTtlInSeconds: 0
+          identitySource: method.request.header.Authorization
+          identityValidationExpression: jwt .+
+          type: token
+  environment:
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    BUCKET_NAME:
+      Fn::ImportValue: ${self:custom.prefix}-finetune-data-bucket-name
+
+upload_finetune_file:
+  runtime: python3.8
+  handler: functions.upload_finetune_file.handler
+  events:
+    - http:
+        path: finetune_jobs/upload
+        method: get
+        cors: true
+        authorizer:
+          name: authorizer_function
+          resultTtlInSeconds: 0
+          identitySource: method.request.header.Authorization
+          identityValidationExpression: jwt .+
+          type: token
+  environment:
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    BUCKET_NAME:
+      Fn::ImportValue: ${self:custom.prefix}-finetune-data-bucket-name
